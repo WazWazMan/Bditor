@@ -12,7 +12,9 @@
             "cacheVariables": {
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
                 "CMAKE_C_COMPILER": "cl.exe",
-                "CMAKE_CXX_COMPILER": "cl.exe"
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "CMAKE_CXX_FLAGS": "/EHsc /W4 /D_DEBUG /MDd",
+                "CMAKE_C_FLAGS": "/EHsc /W4 /D_DEBUG /MDd"
             },
             "environment": {
               "CFLAGS": "/fsanitize=address",
