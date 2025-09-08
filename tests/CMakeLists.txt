@@ -1,4 +1,4 @@
-project(WditorTests LANGUAGES C CXX)
+project(BditorTests LANGUAGES C CXX)
 
 include(FetchContent)
 FetchContent_Declare(
