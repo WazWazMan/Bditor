@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <piece_table.h>
+#include <piece_table.hpp>
 
 TEST(LinkedListTest, Insert)
 {
