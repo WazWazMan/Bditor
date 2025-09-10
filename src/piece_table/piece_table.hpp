@@ -56,10 +56,10 @@ private:
     };
 
     EditNode *editTreeRoot;
-    std::vector<std::unique_ptr<Buffer>> buffers;
+    std::vector<Buffer> buffers;
 
     void change(const unsigned int &index, const unsigned int length, const std::string &data);
-    int insertBuffer(std::string &data);
+    unsigned int insertBuffer(std::string &data);
     void insertEdit(EditNode data);
     EditNode &findEdit(int &index);
 

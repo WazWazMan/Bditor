@@ -87,8 +87,8 @@ PieceTable &PieceTable::replace(const unsigned int &index, const unsigned int &l
     return *this;
 }
 
-int PieceTable::insertBuffer(std::string &data)
+unsigned int PieceTable::insertBuffer(std::string &data)
 {
-    this->buffers.push_back(std::make_unique<Buffer>(data));
-    return this->buffers.size() - 1;
+    this->buffers.emplace_back(data);
+    return this->buffers.size() + size_t(-1);
 }
