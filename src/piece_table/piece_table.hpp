@@ -46,9 +46,13 @@ private:
     {
         std::string str;
         int *lineStarts;
-
+        int lineCount;
+        
         Buffer(std::string str);
+        Buffer(const Buffer &other);
         ~Buffer();
+
+        Buffer &operator=(const Buffer &other);
     };
 
     EditNode *editTreeRoot;

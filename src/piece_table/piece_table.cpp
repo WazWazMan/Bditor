@@ -12,7 +12,7 @@ PieceTable::EditPiece::EditPiece(const int bufferInfex, const BufferPosition &st
 
 PieceTable::BufferPosition::BufferPosition(int index, int offset) : index(index), offset(offset) {}
 
-PieceTable::Buffer::Buffer(std::string str) : str(str), lineStarts(nullptr)
+PieceTable::Buffer::Buffer(std::string str) : str(str), lineStarts(nullptr), lineCount(0)
 {
     char temp;
     std::deque<int> linesList;
@@ -27,7 +27,6 @@ PieceTable::Buffer::Buffer(std::string str) : str(str), lineStarts(nullptr)
         }
     }
     this->lineStarts = new int[linesList.size()];
-    int lineCount = 0;
     while (!linesList.empty())
     {
         this->lineStarts[lineCount] = linesList.front();
@@ -39,6 +38,26 @@ PieceTable::Buffer::Buffer(std::string str) : str(str), lineStarts(nullptr)
 PieceTable::Buffer::~Buffer()
 {
     delete lineStarts;
+}
+
+PieceTable::Buffer::Buffer(const Buffer &other) : str(other.str), lineStarts(new int[other.lineCount]()), lineCount(other.lineCount)
+{
+    for (int i = 0; i < other.lineCount; i++)
+    {
+        this->lineStarts[i] = this->lineStarts[i];
+    }
+}
+PieceTable::Buffer &PieceTable::Buffer::operator=(const Buffer &other)
+{
+    this->lineCount = other.lineCount;
+    this->str = other.str;
+    this->lineStarts = new int[other.lineCount]();
+    for (int i = 0; i < other.lineCount; i++)
+    {
+        this->lineStarts[i] = this->lineStarts[i];
+    }
+
+    return *this;
 }
 
 PieceTable::PieceTable() : editTreeRoot(nullptr)
