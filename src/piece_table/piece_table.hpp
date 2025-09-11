@@ -65,7 +65,7 @@ private:
     std::vector<Buffer> buffers;
 
     void change(const unsigned int &index, const unsigned int length, const std::string &data);
-    unsigned int insertBuffer(std::string &data);
+    size_t insertBuffer(std::string &data);
     void insertEdit(EditNode data);
     NodePosition nodeAt(int index);
     unsigned int getEditPieceLength(const EditPiece &piece);
