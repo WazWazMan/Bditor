@@ -87,8 +87,46 @@ PieceTable &PieceTable::replace(const unsigned int &index, const unsigned int &l
     return *this;
 }
 
+void PieceTable::change(const unsigned int &index, const unsigned int length, const std::string &data){}
+
 unsigned int PieceTable::insertBuffer(std::string &data)
 {
     this->buffers.emplace_back(data);
     return this->buffers.size() + size_t(-1);
+}
+
+unsigned int PieceTable::getEditPieceLength(const EditPiece &piece)
+{
+    int *const lineStarts = this->buffers[piece.bufferInfex].lineStarts;
+    int startIndex = lineStarts[piece.start.index] + piece.start.offset;
+    int endIndex = lineStarts[piece.end.index] + piece.end.offset;
+
+    return endIndex - startIndex;
+}
+
+PieceTable::NodePosition::NodePosition(int nodeStartOffset, EditNode *node) : nodeStartOffset(nodeStartOffset), node(node) {}
+
+PieceTable::NodePosition PieceTable::nodeAt(int index)
+{
+    EditNode *currentNode = editTreeRoot;
+    int currentOffset = 0;
+    while (currentNode != nullptr)
+    {
+        if (currentNode->data.leftSubTreeLength > index)
+        {
+            currentNode = currentNode->left;
+        }
+        else if (currentNode->data.leftSubTreeLength + getEditPieceLength(currentNode->data) > index)
+        {
+            return NodePosition(currentOffset, currentNode);
+        }
+        else
+        {
+            index -= currentNode->data.leftSubTreeLength + getEditPieceLength(currentNode->data);
+            currentOffset += currentNode->data.leftSubTreeLength + getEditPieceLength(currentNode->data);
+            currentNode = currentNode->right;
+        }
+    }
+
+    return NodePosition(0, nullptr);
 }

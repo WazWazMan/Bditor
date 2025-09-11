@@ -47,12 +47,18 @@ private:
         std::string str;
         int *lineStarts;
         int lineCount;
-        
+
         Buffer(std::string str);
         Buffer(const Buffer &other);
         ~Buffer();
 
         Buffer &operator=(const Buffer &other);
+    };
+    struct NodePosition{
+        int nodeStartOffset;
+        EditNode* node;
+
+        NodePosition(int nodeStartOffset,EditNode* node);
     };
 
     EditNode *editTreeRoot;
@@ -61,7 +67,8 @@ private:
     void change(const unsigned int &index, const unsigned int length, const std::string &data);
     unsigned int insertBuffer(std::string &data);
     void insertEdit(EditNode data);
-    EditNode &findEdit(int &index);
+    NodePosition nodeAt(int index);
+    unsigned int getEditPieceLength(const EditPiece &piece);
 
 public:
     PieceTable();
@@ -71,5 +78,5 @@ public:
     PieceTable &remove(const unsigned int &index, const unsigned int &length);
     PieceTable &replace(const unsigned int &index, const unsigned int &length, const std::string &data);
 
-    std::string getLineContent();
+    // std::string getLineContent();
 };
