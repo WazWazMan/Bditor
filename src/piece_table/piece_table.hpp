@@ -40,6 +40,7 @@ private:
         EditNode *right;
 
         EditNode(EditPiece &data);
+        EditNode(const EditPiece &data);
         ~EditNode();
     };
     struct Buffer
@@ -54,11 +55,12 @@ private:
 
         Buffer &operator=(const Buffer &other);
     };
-    struct NodePosition{
+    struct NodePosition
+    {
         int nodeStartOffset;
-        EditNode* node;
+        EditNode *node;
 
-        NodePosition(int nodeStartOffset,EditNode* node);
+        NodePosition(int nodeStartOffset, EditNode *node);
     };
 
     EditNode *editTreeRoot;
@@ -66,9 +68,14 @@ private:
 
     void change(const unsigned int &index, const unsigned int length, const std::string &data);
     size_t insertBuffer(std::string &data);
-    void insertEdit(EditNode data);
+    // void insertEdit(EditNode data);
     NodePosition nodeAt(int index);
     unsigned int getEditPieceLength(const EditPiece &piece);
+    void insertRight(EditNode *const node, const EditPiece &piece);
+    void insertLeft(EditNode *const node, const EditPiece &piece);
+    EditNode *findSmallest(EditNode *node);
+    EditNode *findBiggest(EditNode *node);
+    void fixInsert(EditNode *node);
 
 public:
     PieceTable();

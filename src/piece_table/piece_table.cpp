@@ -1,6 +1,7 @@
 #include "piece_table.hpp"
 
 PieceTable::EditNode::EditNode(EditPiece &data) : data(data), color(RED), parent(nullptr), left(nullptr), right(nullptr) {}
+PieceTable::EditNode::EditNode(const EditPiece &data) : data(data), color(RED), parent(nullptr), left(nullptr), right(nullptr) {}
 
 PieceTable::EditNode::~EditNode()
 {
@@ -8,7 +9,7 @@ PieceTable::EditNode::~EditNode()
     delete left;
 }
 
-PieceTable::EditPiece::EditPiece(const int bufferInfex, const BufferPosition &start, const BufferPosition &end) : bufferInfex(bufferInfex), start(start), end(end) {}
+PieceTable::EditPiece::EditPiece(const int bufferInfex, const BufferPosition &start, const BufferPosition &end) : bufferInfex(bufferInfex), start(start), end(end), leftSubTreeLength(0), leftSubTreeLineCount(0) {}
 
 PieceTable::BufferPosition::BufferPosition(int index, int offset) : index(index), offset(offset) {}
 
@@ -87,7 +88,7 @@ PieceTable &PieceTable::replace(const unsigned int &index, const unsigned int &l
     return *this;
 }
 
-void PieceTable::change(const unsigned int &index, const unsigned int length, const std::string &data){}
+void PieceTable::change(const unsigned int &index, const unsigned int length, const std::string &data) {}
 
 size_t PieceTable::insertBuffer(std::string &data)
 {
@@ -129,4 +130,92 @@ PieceTable::NodePosition PieceTable::nodeAt(int index)
     }
 
     return NodePosition(0, nullptr);
+}
+
+PieceTable::EditNode *PieceTable::findSmallest(EditNode *node)
+{
+    if (node == nullptr)
+        return nullptr;
+    while (node->left != nullptr)
+    {
+        node = node->left;
+    }
+    return node;
+}
+
+PieceTable::EditNode *PieceTable::findBiggest(EditNode *node)
+{
+    if (node == nullptr)
+        return nullptr;
+    while (node->right != nullptr)
+    {
+        node = node->right;
+    }
+    return node;
+}
+
+/**
+ *      node              node
+ *     /  \              /  \
+ *    a   b    ---->   a    b
+ *                         /
+ *                        z
+ */
+void PieceTable::insertRight(EditNode *const node, const EditPiece &piece)
+{
+    EditNode *newNode = new EditNode(piece);
+    newNode->data.leftSubTreeLength = 0;
+    newNode->data.leftSubTreeLineCount = 0;
+
+    if (editTreeRoot == nullptr)
+    {
+        editTreeRoot = newNode;
+        editTreeRoot->color = BLACK;
+    }
+    else if (node->right == nullptr)
+    {
+        node->right = newNode;
+        newNode->parent = node;
+    }
+    else
+    {
+        EditNode *nextNode = findSmallest(node);
+        nextNode->left = newNode;
+        newNode->parent = nextNode;
+    }
+
+    fixInsert(newNode);
+}
+
+/**
+ *      node              node
+ *     /  \              /  \
+ *    a   b     ---->   a    b
+ *                       \
+ *                        z
+ */
+void PieceTable::insertLeft(EditNode *const node, const EditPiece &piece)
+{
+    EditNode *newNode = new EditNode(piece);
+    newNode->data.leftSubTreeLength = 0;
+    newNode->data.leftSubTreeLineCount = 0;
+
+    if (editTreeRoot == nullptr)
+    {
+        editTreeRoot = newNode;
+        editTreeRoot->color = BLACK;
+    }
+    else if (node->left == nullptr)
+    {
+        node->left = newNode;
+        newNode->parent = node;
+    }
+    else
+    {
+        EditNode *nextNode = findBiggest(node);
+        nextNode->right = newNode;
+        newNode->parent = nextNode;
+    }
+
+    fixInsert(newNode);
 }
