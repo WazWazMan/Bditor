@@ -71,11 +71,17 @@ private:
     // void insertEdit(EditNode data);
     NodePosition nodeAt(int index);
     unsigned int getEditPieceLength(const EditPiece &piece);
+    unsigned int getEditPieceLineCount(const EditPiece &piece);
     void insertRight(EditNode *const node, const EditPiece &piece);
     void insertLeft(EditNode *const node, const EditPiece &piece);
     EditNode *findSmallest(EditNode *node);
     EditNode *findBiggest(EditNode *node);
     void fixInsert(EditNode *node);
+    void updateMetadata(EditNode *node);
+    void rotateRight(EditNode *node);
+    void rotateLeft(EditNode *node);
+    unsigned int calculateLength(EditNode *node);
+    unsigned int calculateLineCount(EditNode *node);
 
 public:
     PieceTable();

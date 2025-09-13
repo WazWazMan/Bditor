@@ -105,6 +105,11 @@ unsigned int PieceTable::getEditPieceLength(const EditPiece &piece)
     return endIndex - startIndex;
 }
 
+unsigned int PieceTable::getEditPieceLineCount(const EditPiece &piece)
+{
+    return piece.end.index - piece.start.index;
+}
+
 PieceTable::NodePosition::NodePosition(int nodeStartOffset, EditNode *node) : nodeStartOffset(nodeStartOffset), node(node) {}
 
 PieceTable::NodePosition PieceTable::nodeAt(int index)
@@ -218,4 +223,157 @@ void PieceTable::insertLeft(EditNode *const node, const EditPiece &piece)
     }
 
     fixInsert(newNode);
+}
+
+void PieceTable::rotateRight(EditNode *node)
+{
+    EditNode *child = node->left;
+
+    // fix size of parent
+    node->data.leftSubTreeLength -= (child->data.leftSubTreeLength + getEditPieceLength(child->data));
+    node->data.leftSubTreeLineCount -= (child->data.leftSubTreeLineCount + getEditPieceLineCount(child->data));
+
+    node->left = child->right;
+    if (node->left != nullptr)
+        node->left->parent = node;
+    child->parent = node->parent;
+    if (node->parent == nullptr)
+        editTreeRoot = child;
+    else if (node == node->parent->left)
+        node->parent->left = child;
+    else
+        node->parent->right = child;
+    child->right = node;
+    node->parent = child;
+}
+
+void PieceTable::rotateLeft(EditNode *node)
+{
+    EditNode *child = node->right;
+
+    // fix size of child
+    child->data.leftSubTreeLength += node->data.leftSubTreeLength + getEditPieceLength(node->data);
+    child->data.leftSubTreeLineCount += node->data.leftSubTreeLineCount + getEditPieceLineCount(node->data);
+
+    node->right = child->left;
+    if (node->right != nullptr)
+        node->right->parent = node;
+    child->parent = node->parent;
+    if (node->parent == nullptr)
+        editTreeRoot = child;
+    else if (node == node->parent->left)
+        node->parent->left = child;
+    else
+        node->parent->right = child;
+    child->left = node;
+    node->parent = child;
+}
+
+void PieceTable::fixInsert(EditNode *node)
+{
+    updateMetadata(node);
+
+    EditNode *parent = nullptr;
+    EditNode *grandparent = nullptr;
+    while (node != editTreeRoot && node->color == RED && node->parent->color == RED)
+    {
+        parent = node->parent;
+        grandparent = parent->parent;
+        if (parent == grandparent->left)
+        {
+            EditNode *uncle = grandparent->right;
+            if (uncle != nullptr && uncle->color == RED)
+            {
+                grandparent->color = RED;
+                parent->color = BLACK;
+                uncle->color = BLACK;
+                node = grandparent;
+            }
+            else
+            {
+                if (node == parent->right)
+                {
+                    rotateLeft(parent);
+                    node = parent;
+                    parent = node->parent;
+                }
+                rotateRight(grandparent);
+                std::swap(parent->color, grandparent->color);
+                node = parent;
+            }
+        }
+        else
+        {
+            EditNode *uncle = grandparent->left;
+            if (uncle != nullptr && uncle->color == RED)
+            {
+                grandparent->color = RED;
+                parent->color = BLACK;
+                uncle->color = BLACK;
+                node = grandparent;
+            }
+            else
+            {
+                if (node == parent->left)
+                {
+                    rotateRight(parent);
+                    node = parent;
+                    parent = node->parent;
+                }
+                rotateLeft(grandparent);
+                std::swap(parent->color, grandparent->color);
+                node = parent;
+            }
+        }
+    }
+    editTreeRoot->color = BLACK;
+}
+
+void PieceTable::updateMetadata(EditNode *node)
+{
+    if (node == editTreeRoot)
+        return;
+
+    // go upwards till the node whose left subtree is changed.
+    while (node != editTreeRoot && node == node->parent->right)
+    {
+        node = node->parent;
+    }
+
+    if (node == editTreeRoot)
+        // well, it means we add a node to the end (inorder)
+        return;
+
+    node = node->parent;
+
+    int lengthDelta = calculateLength(node->left) - node->data.leftSubTreeLength;
+    int lineCountDelta = calculateLineCount(node->left) - node->data.leftSubTreeLineCount;
+
+    node->data.leftSubTreeLength += lengthDelta;
+    node->data.leftSubTreeLineCount += lineCountDelta;
+
+    while (node != editTreeRoot && (lengthDelta != 0 || lineCountDelta != 0))
+    {
+        if(node->parent->left == node){
+            node->parent->data.leftSubTreeLength += lengthDelta;
+            node->parent->data.leftSubTreeLineCount += lineCountDelta;
+        }
+        node = node->parent;
+    }
+}
+
+unsigned int PieceTable::calculateLength(EditNode *node){
+    if(node == nullptr){
+        return 0;
+    }
+
+    return node->data.leftSubTreeLength + getEditPieceLength(node->data) + calculateLength(node->right);
+}
+
+unsigned int PieceTable::calculateLineCount(EditNode *node){
+    if(node == nullptr){
+        return 0;
+    }
+
+    return node->data.leftSubTreeLineCount + getEditPieceLineCount(node->data) + calculateLineCount(node->right);
 }
