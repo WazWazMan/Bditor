@@ -67,13 +67,13 @@ private:
     std::vector<Buffer> buffers;
 
     void change(const unsigned int &index, const unsigned int length, const std::string &data);
-    size_t insertBuffer(std::string &data);
+    size_t insertBuffer(const std::string &data);
     // void insertEdit(EditNode data);
     NodePosition nodeAt(int index);
     unsigned int getEditPieceLength(const EditPiece &piece);
     unsigned int getEditPieceLineCount(const EditPiece &piece);
-    void insertRight(EditNode *const node, const EditPiece &piece);
-    void insertLeft(EditNode *const node, const EditPiece &piece);
+    EditNode * insertRight(EditNode *const node, const EditPiece &piece);
+    EditNode * insertLeft(EditNode *const node, const EditPiece &piece);
     EditNode *findSmallest(EditNode *node);
     EditNode *findBiggest(EditNode *node);
     void fixInsert(EditNode *node);
@@ -87,9 +87,9 @@ public:
     PieceTable();
     ~PieceTable();
 
-    PieceTable &insert(const unsigned int &index, const std::string &data);
-    PieceTable &remove(const unsigned int &index, const unsigned int &length);
-    PieceTable &replace(const unsigned int &index, const unsigned int &length, const std::string &data);
+    PieceTable &insert(const unsigned int index, const std::string &data);
+    PieceTable &remove(const unsigned int index, const unsigned int &length);
+    PieceTable &replace(const unsigned int index, const unsigned int &length, const std::string &data);
 
     // std::string getLineContent();
 };

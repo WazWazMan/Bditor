@@ -70,19 +70,19 @@ PieceTable::~PieceTable()
     delete editTreeRoot;
 }
 
-PieceTable &PieceTable::insert(const unsigned int &index, const std::string &data)
+PieceTable &PieceTable::insert(const unsigned int index, const std::string &data)
 {
     change(index, 0, data);
     return *this;
 }
 
-PieceTable &PieceTable::remove(const unsigned int &index, const unsigned int &length)
+PieceTable &PieceTable::remove(const unsigned int index, const unsigned int &length)
 {
     change(index, length, "");
     return *this;
 }
 
-PieceTable &PieceTable::replace(const unsigned int &index, const unsigned int &length, const std::string &data)
+PieceTable &PieceTable::replace(const unsigned int index, const unsigned int &length, const std::string &data)
 {
     change(index, length, data);
     return *this;
@@ -90,7 +90,7 @@ PieceTable &PieceTable::replace(const unsigned int &index, const unsigned int &l
 
 void PieceTable::change(const unsigned int &index, const unsigned int length, const std::string &data) {}
 
-size_t PieceTable::insertBuffer(std::string &data)
+size_t PieceTable::insertBuffer(const std::string &data)
 {
     this->buffers.emplace_back(data);
     return this->buffers.size() + size_t(-1);
@@ -122,7 +122,7 @@ PieceTable::NodePosition PieceTable::nodeAt(int index)
         {
             currentNode = currentNode->left;
         }
-        else if (currentNode->data.leftSubTreeLength + getEditPieceLength(currentNode->data) > index)
+        else if (currentNode->data.leftSubTreeLength + getEditPieceLength(currentNode->data) >= index)
         {
             return NodePosition(currentOffset, currentNode);
         }
@@ -166,7 +166,7 @@ PieceTable::EditNode *PieceTable::findBiggest(EditNode *node)
  *                         /
  *                        z
  */
-void PieceTable::insertRight(EditNode *const node, const EditPiece &piece)
+PieceTable::EditNode *PieceTable::insertRight(EditNode *const node, const EditPiece &piece)
 {
     EditNode *newNode = new EditNode(piece);
     newNode->data.leftSubTreeLength = 0;
@@ -190,6 +190,8 @@ void PieceTable::insertRight(EditNode *const node, const EditPiece &piece)
     }
 
     fixInsert(newNode);
+
+    return newNode;
 }
 
 /**
@@ -199,7 +201,7 @@ void PieceTable::insertRight(EditNode *const node, const EditPiece &piece)
  *                       \
  *                        z
  */
-void PieceTable::insertLeft(EditNode *const node, const EditPiece &piece)
+PieceTable::EditNode *PieceTable::insertLeft(EditNode *const node, const EditPiece &piece)
 {
     EditNode *newNode = new EditNode(piece);
     newNode->data.leftSubTreeLength = 0;
@@ -223,6 +225,8 @@ void PieceTable::insertLeft(EditNode *const node, const EditPiece &piece)
     }
 
     fixInsert(newNode);
+
+    return newNode;
 }
 
 void PieceTable::rotateRight(EditNode *node)
@@ -354,7 +358,8 @@ void PieceTable::updateMetadata(EditNode *node)
 
     while (node != editTreeRoot && (lengthDelta != 0 || lineCountDelta != 0))
     {
-        if(node->parent->left == node){
+        if (node->parent->left == node)
+        {
             node->parent->data.leftSubTreeLength += lengthDelta;
             node->parent->data.leftSubTreeLineCount += lineCountDelta;
         }
@@ -362,16 +367,20 @@ void PieceTable::updateMetadata(EditNode *node)
     }
 }
 
-unsigned int PieceTable::calculateLength(EditNode *node){
-    if(node == nullptr){
+unsigned int PieceTable::calculateLength(EditNode *node)
+{
+    if (node == nullptr)
+    {
         return 0;
     }
 
     return node->data.leftSubTreeLength + getEditPieceLength(node->data) + calculateLength(node->right);
 }
 
-unsigned int PieceTable::calculateLineCount(EditNode *node){
-    if(node == nullptr){
+unsigned int PieceTable::calculateLineCount(EditNode *node)
+{
+    if (node == nullptr)
+    {
         return 0;
     }
 
