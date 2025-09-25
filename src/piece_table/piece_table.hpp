@@ -7,6 +7,7 @@
 class PieceTable
 {
 private:
+    const size_t MAX_CHAR_PER_NODE = 200;
     enum Color
     {
         RED,
@@ -14,21 +15,23 @@ private:
     };
     struct BufferPosition
     {
-        int index;
-        int offset;
+        size_t index;
+        size_t offset;
 
-        BufferPosition(int index, int offset);
+        BufferPosition() = default;
+        BufferPosition(size_t index, size_t offset);
     };
     struct EditPiece
     {
-        int bufferInfex;
+        size_t bufferInfex;
         BufferPosition start;
         BufferPosition end;
 
-        int leftSubTreeLength;
-        int leftSubTreeLineCount;
+        size_t leftSubTreeLength;
+        size_t leftSubTreeLineCount;
 
-        EditPiece(const int bufferInfex, const BufferPosition &start, const BufferPosition &end);
+        EditPiece() = default;
+        EditPiece(const size_t bufferInfex, const BufferPosition &start, const BufferPosition &end);
     };
     struct EditNode
     {
@@ -46,8 +49,8 @@ private:
     struct Buffer
     {
         std::string str;
-        int *lineStarts;
-        int lineCount;
+        size_t *lineStarts;
+        size_t lineCount;
 
         Buffer(std::string str);
         Buffer(const Buffer &other);
@@ -57,39 +60,39 @@ private:
     };
     struct NodePosition
     {
-        int nodeStartOffset;
+        size_t nodeStartOffset;
         EditNode *node;
 
-        NodePosition(int nodeStartOffset, EditNode *node);
+        NodePosition(size_t nodeStartOffset, EditNode *node);
     };
 
     EditNode *editTreeRoot;
     std::vector<Buffer> buffers;
 
-    void change(const unsigned int &index, const unsigned int length, const std::string &data);
+    void change(const size_t index, const size_t length, const std::string &data);
     size_t insertBuffer(const std::string &data);
     // void insertEdit(EditNode data);
-    NodePosition nodeAt(int index);
-    unsigned int getEditPieceLength(const EditPiece &piece);
-    unsigned int getEditPieceLineCount(const EditPiece &piece);
-    EditNode * insertRight(EditNode *const node, const EditPiece &piece);
-    EditNode * insertLeft(EditNode *const node, const EditPiece &piece);
+    NodePosition nodeAt(size_t index);
+    size_t getEditPieceLength(const EditPiece &piece);
+    size_t getEditPieceLineCount(const EditPiece &piece);
+    EditNode *insertRight(EditNode *const node, const EditPiece &piece);
+    EditNode *insertLeft(EditNode *const node, const EditPiece &piece);
     EditNode *findSmallest(EditNode *node);
     EditNode *findBiggest(EditNode *node);
     void fixInsert(EditNode *node);
     void updateMetadata(EditNode *node);
     void rotateRight(EditNode *node);
     void rotateLeft(EditNode *node);
-    unsigned int calculateLength(EditNode *node);
-    unsigned int calculateLineCount(EditNode *node);
+    size_t calculateLength(EditNode *node);
+    size_t calculateLineCount(EditNode *node);
 
 public:
     PieceTable();
     ~PieceTable();
 
-    PieceTable &insert(const unsigned int index, const std::string &data);
-    PieceTable &remove(const unsigned int index, const unsigned int &length);
-    PieceTable &replace(const unsigned int index, const unsigned int &length, const std::string &data);
+    PieceTable &insert(const size_t index, const std::string &data);
+    PieceTable &remove(const size_t index, const size_t &length);
+    PieceTable &replace(const size_t index, const size_t &length, const std::string &data);
 
     // std::string getLineContent();
 };

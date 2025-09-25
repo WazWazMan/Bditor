@@ -9,17 +9,17 @@ PieceTable::EditNode::~EditNode()
     delete left;
 }
 
-PieceTable::EditPiece::EditPiece(const int bufferInfex, const BufferPosition &start, const BufferPosition &end) : bufferInfex(bufferInfex), start(start), end(end), leftSubTreeLength(0), leftSubTreeLineCount(0) {}
+PieceTable::EditPiece::EditPiece(const size_t bufferInfex, const BufferPosition &start, const BufferPosition &end) : bufferInfex(bufferInfex), start(start), end(end), leftSubTreeLength(0), leftSubTreeLineCount(0) {}
 
-PieceTable::BufferPosition::BufferPosition(int index, int offset) : index(index), offset(offset) {}
+PieceTable::BufferPosition::BufferPosition(size_t index, size_t offset) : index(index), offset(offset) {}
 
 PieceTable::Buffer::Buffer(std::string str) : str(str), lineStarts(nullptr), lineCount(0)
 {
     char temp;
-    std::deque<int> linesList;
+    std::deque<size_t> linesList;
     linesList.push_back(0);
 
-    for (unsigned int i = 0; i < str.length(); i++)
+    for (size_t i = 0; i < str.length(); i++)
     {
         temp = str[i];
         if (temp == '\n')
@@ -27,7 +27,7 @@ PieceTable::Buffer::Buffer(std::string str) : str(str), lineStarts(nullptr), lin
             linesList.push_back(i);
         }
     }
-    this->lineStarts = new int[linesList.size()];
+    this->lineStarts = new size_t[linesList.size()];
     while (!linesList.empty())
     {
         this->lineStarts[lineCount] = linesList.front();
@@ -41,7 +41,7 @@ PieceTable::Buffer::~Buffer()
     delete lineStarts;
 }
 
-PieceTable::Buffer::Buffer(const Buffer &other) : str(other.str), lineStarts(new int[other.lineCount]()), lineCount(other.lineCount)
+PieceTable::Buffer::Buffer(const Buffer &other) : str(other.str), lineStarts(new size_t[other.lineCount]()), lineCount(other.lineCount)
 {
     for (int i = 0; i < other.lineCount; i++)
     {
@@ -52,7 +52,7 @@ PieceTable::Buffer &PieceTable::Buffer::operator=(const Buffer &other)
 {
     this->lineCount = other.lineCount;
     this->str = other.str;
-    this->lineStarts = new int[other.lineCount]();
+    this->lineStarts = new size_t[other.lineCount]();
     for (int i = 0; i < other.lineCount; i++)
     {
         this->lineStarts[i] = this->lineStarts[i];
@@ -61,34 +61,32 @@ PieceTable::Buffer &PieceTable::Buffer::operator=(const Buffer &other)
     return *this;
 }
 
-PieceTable::PieceTable() : editTreeRoot(nullptr)
-{
-}
+PieceTable::PieceTable() : editTreeRoot(nullptr) {}
 
 PieceTable::~PieceTable()
 {
     delete editTreeRoot;
 }
 
-PieceTable &PieceTable::insert(const unsigned int index, const std::string &data)
+PieceTable &PieceTable::insert(const size_t index, const std::string &data)
 {
     change(index, 0, data);
     return *this;
 }
 
-PieceTable &PieceTable::remove(const unsigned int index, const unsigned int &length)
+PieceTable &PieceTable::remove(const size_t index, const size_t &length)
 {
     change(index, length, "");
     return *this;
 }
 
-PieceTable &PieceTable::replace(const unsigned int index, const unsigned int &length, const std::string &data)
+PieceTable &PieceTable::replace(const size_t index, const size_t &length, const std::string &data)
 {
     change(index, length, data);
     return *this;
 }
 
-void PieceTable::change(const unsigned int &index, const unsigned int length, const std::string &data) {}
+void PieceTable::change(const size_t index, const size_t length, const std::string &data) {}
 
 size_t PieceTable::insertBuffer(const std::string &data)
 {
@@ -96,26 +94,26 @@ size_t PieceTable::insertBuffer(const std::string &data)
     return this->buffers.size() + size_t(-1);
 }
 
-unsigned int PieceTable::getEditPieceLength(const EditPiece &piece)
+size_t PieceTable::getEditPieceLength(const EditPiece &piece)
 {
-    int *const lineStarts = this->buffers[piece.bufferInfex].lineStarts;
-    int startIndex = lineStarts[piece.start.index] + piece.start.offset;
-    int endIndex = lineStarts[piece.end.index] + piece.end.offset;
+    size_t *const lineStarts = this->buffers[piece.bufferInfex].lineStarts;
+    size_t startIndex = lineStarts[piece.start.index] + piece.start.offset;
+    size_t endIndex = lineStarts[piece.end.index] + piece.end.offset;
 
     return endIndex - startIndex;
 }
 
-unsigned int PieceTable::getEditPieceLineCount(const EditPiece &piece)
+size_t PieceTable::getEditPieceLineCount(const EditPiece &piece)
 {
     return piece.end.index - piece.start.index;
 }
 
-PieceTable::NodePosition::NodePosition(int nodeStartOffset, EditNode *node) : nodeStartOffset(nodeStartOffset), node(node) {}
+PieceTable::NodePosition::NodePosition(size_t nodeStartOffset, EditNode *node) : nodeStartOffset(nodeStartOffset), node(node) {}
 
-PieceTable::NodePosition PieceTable::nodeAt(int index)
+PieceTable::NodePosition PieceTable::nodeAt(size_t index)
 {
     EditNode *currentNode = editTreeRoot;
-    int currentOffset = 0;
+    size_t currentOffset = 0;
     while (currentNode != nullptr)
     {
         if (currentNode->data.leftSubTreeLength > index)
@@ -350,8 +348,8 @@ void PieceTable::updateMetadata(EditNode *node)
 
     node = node->parent;
 
-    int lengthDelta = calculateLength(node->left) - node->data.leftSubTreeLength;
-    int lineCountDelta = calculateLineCount(node->left) - node->data.leftSubTreeLineCount;
+    size_t lengthDelta = calculateLength(node->left) - node->data.leftSubTreeLength;
+    size_t lineCountDelta = calculateLineCount(node->left) - node->data.leftSubTreeLineCount;
 
     node->data.leftSubTreeLength += lengthDelta;
     node->data.leftSubTreeLineCount += lineCountDelta;
@@ -367,7 +365,7 @@ void PieceTable::updateMetadata(EditNode *node)
     }
 }
 
-unsigned int PieceTable::calculateLength(EditNode *node)
+size_t PieceTable::calculateLength(EditNode *node)
 {
     if (node == nullptr)
     {
@@ -377,7 +375,7 @@ unsigned int PieceTable::calculateLength(EditNode *node)
     return node->data.leftSubTreeLength + getEditPieceLength(node->data) + calculateLength(node->right);
 }
 
-unsigned int PieceTable::calculateLineCount(EditNode *node)
+size_t PieceTable::calculateLineCount(EditNode *node)
 {
     if (node == nullptr)
     {
