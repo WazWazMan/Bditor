@@ -31,6 +31,8 @@ private:
         size_t leftSubTreeLineCount;
 
         EditPiece() = default;
+        EditPiece(const EditPiece &other);
+        EditPiece &operator=(const EditPiece &other);
         EditPiece(const size_t bufferInfex, const BufferPosition &start, const BufferPosition &end);
     };
     struct EditNode
@@ -44,6 +46,7 @@ private:
 
         EditNode(EditPiece &data);
         EditNode(const EditPiece &data);
+        EditNode &operator=(const EditNode &other);
         ~EditNode();
     };
     struct Buffer
@@ -65,6 +68,15 @@ private:
 
         NodePosition(size_t nodeStartOffset, EditNode *node);
     };
+    struct NodeArrayStruct
+    {
+        EditPiece *pieces;
+        size_t size;
+        NodeArrayStruct();
+        NodeArrayStruct(NodeArrayStruct &other);
+        NodeArrayStruct(size_t size);
+        ~NodeArrayStruct();
+    };
 
     EditNode *editTreeRoot;
     std::vector<Buffer> buffers;
@@ -85,6 +97,7 @@ private:
     void rotateLeft(EditNode *node);
     size_t calculateLength(EditNode *node);
     size_t calculateLineCount(EditNode *node);
+    NodeArrayStruct createPieces(const std::string &data);
 
 public:
     PieceTable();

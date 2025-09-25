@@ -9,7 +9,37 @@ PieceTable::EditNode::~EditNode()
     delete left;
 }
 
+PieceTable::EditNode &PieceTable::EditNode::operator=(const EditNode &other)
+{
+    if (this != &other)
+    {
+        this->color = other.color;
+        this->data = other.data;
+        this->left = other.left;
+        this->parent = other.parent;
+        this->right = other.right;
+    }
+
+    return *this;
+}
+
 PieceTable::EditPiece::EditPiece(const size_t bufferInfex, const BufferPosition &start, const BufferPosition &end) : bufferInfex(bufferInfex), start(start), end(end), leftSubTreeLength(0), leftSubTreeLineCount(0) {}
+
+PieceTable::EditPiece::EditPiece(const EditPiece &other) : bufferInfex(other.bufferInfex), end(other.end), leftSubTreeLength(other.leftSubTreeLength), leftSubTreeLineCount(other.leftSubTreeLineCount), start(other.start) {}
+
+PieceTable::EditPiece &PieceTable::EditPiece::operator=(const EditPiece &other)
+{
+    if (this != &other)
+    {
+        this->bufferInfex = other.bufferInfex;
+        this->end = other.end;
+        this->leftSubTreeLength = other.leftSubTreeLength;
+        this->leftSubTreeLineCount = other.leftSubTreeLineCount;
+        this->start = other.start;
+    }
+
+    return *this;
+}
 
 PieceTable::BufferPosition::BufferPosition(size_t index, size_t offset) : index(index), offset(offset) {}
 
@@ -50,15 +80,32 @@ PieceTable::Buffer::Buffer(const Buffer &other) : str(other.str), lineStarts(new
 }
 PieceTable::Buffer &PieceTable::Buffer::operator=(const Buffer &other)
 {
-    this->lineCount = other.lineCount;
-    this->str = other.str;
-    this->lineStarts = new size_t[other.lineCount]();
-    for (int i = 0; i < other.lineCount; i++)
+    if (this != &other)
     {
-        this->lineStarts[i] = this->lineStarts[i];
+        this->lineCount = other.lineCount;
+        this->str = other.str;
+        this->lineStarts = new size_t[other.lineCount]();
+        for (int i = 0; i < other.lineCount; i++)
+        {
+            this->lineStarts[i] = this->lineStarts[i];
+        }
     }
 
     return *this;
+}
+
+PieceTable::NodeArrayStruct::NodeArrayStruct() : pieces(nullptr), size(0) {}
+PieceTable::NodeArrayStruct::NodeArrayStruct(size_t size) : pieces(new EditPiece[size]()), size(size) {}
+PieceTable::NodeArrayStruct::NodeArrayStruct(NodeArrayStruct &other) : pieces(new EditPiece[other.size]()), size(other.size)
+{
+    for (size_t i = 0; i < other.size; i++)
+    {
+        this->pieces[i] = other.pieces[i];
+    }
+}
+PieceTable::NodeArrayStruct::~NodeArrayStruct()
+{
+    delete[] pieces;
 }
 
 PieceTable::PieceTable() : editTreeRoot(nullptr) {}
@@ -72,6 +119,46 @@ PieceTable &PieceTable::insert(const size_t index, const std::string &data)
 {
     change(index, 0, data);
     return *this;
+}
+
+PieceTable::NodeArrayStruct PieceTable::createPieces(const std::string &data)
+{
+    size_t data_length = data.size();
+    // padding the int so the integer devision will be roung up
+    size_t arr_len = (data_length + MAX_CHAR_PER_NODE - 1) / MAX_CHAR_PER_NODE;
+
+    NodeArrayStruct retData(arr_len);
+
+    size_t index = 0;
+    size_t lengthUsed = 0;
+    std::string subString;
+    size_t charsToUse, bufferIndex, lastLineIndex, strLen;
+    BufferPosition start, end;
+    while (lengthUsed != data_length)
+    {
+        if (lengthUsed + MAX_CHAR_PER_NODE < data_length)
+        {
+            charsToUse = MAX_CHAR_PER_NODE;
+        }
+        else
+        {
+            charsToUse = data_length - lengthUsed;
+        }
+
+        subString = data.substr(lengthUsed, charsToUse);
+
+        bufferIndex = insertBuffer(subString);
+        start = BufferPosition(0, 0);
+        lastLineIndex = buffers[bufferIndex].lineStarts[buffers[bufferIndex].lineCount - 1];
+        strLen = buffers[bufferIndex].str.size();
+        end = BufferPosition(lastLineIndex, strLen - lastLineIndex);
+        retData.pieces[index] = EditPiece(bufferIndex, start, end);
+
+        lengthUsed += charsToUse;
+        index++;
+    }
+
+    return retData;
 }
 
 PieceTable &PieceTable::remove(const size_t index, const size_t &length)
