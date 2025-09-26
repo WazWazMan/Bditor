@@ -85,7 +85,7 @@ PieceTable::Buffer::Buffer(const Buffer &other) : str(other.str), lineStarts(new
 {
     for (int i = 0; i < other.lineCount; i++)
     {
-        this->lineStarts[i] = this->lineStarts[i];
+        this->lineStarts[i] = other.lineStarts[i];
     }
 }
 PieceTable::Buffer &PieceTable::Buffer::operator=(const Buffer &other)
@@ -97,7 +97,7 @@ PieceTable::Buffer &PieceTable::Buffer::operator=(const Buffer &other)
         this->lineStarts = new size_t[other.lineCount]();
         for (int i = 0; i < other.lineCount; i++)
         {
-            this->lineStarts[i] = this->lineStarts[i];
+            this->lineStarts[i] = other.lineStarts[i];
         }
     }
 
@@ -159,9 +159,9 @@ PieceTable::NodeArrayStruct PieceTable::createPieces(const std::string &data)
 
         bufferIndex = insertBuffer(subString);
         start = BufferPosition(0, 0);
-        lastLineIndex = buffers[bufferIndex].lineStarts[buffers[bufferIndex].lineCount - 1];
+        lastLineIndex = buffers[bufferIndex].lineCount - 1;
         strLen = buffers[bufferIndex].str.size();
-        end = BufferPosition(lastLineIndex, strLen - lastLineIndex);
+        end = BufferPosition(lastLineIndex, strLen - buffers[bufferIndex].lineStarts[lastLineIndex]);
         retData.pieces[index] = EditPiece(bufferIndex, start, end);
 
         lengthUsed += charsToUse;
@@ -279,7 +279,7 @@ PieceTable::EditNode *PieceTable::insertRight(EditNode *const node, const EditPi
     }
     else
     {
-        EditNode *nextNode = findSmallest(node);
+        EditNode *nextNode = findSmallest(node->right);
         nextNode->left = newNode;
         newNode->parent = nextNode;
     }
@@ -314,7 +314,7 @@ PieceTable::EditNode *PieceTable::insertLeft(EditNode *const node, const EditPie
     }
     else
     {
-        EditNode *nextNode = findBiggest(node);
+        EditNode *nextNode = findBiggest(node->left);
         nextNode->right = newNode;
         newNode->parent = nextNode;
     }
