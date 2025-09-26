@@ -19,7 +19,9 @@ private:
         size_t offset;
 
         BufferPosition() = default;
+        BufferPosition(const BufferPosition& other);
         BufferPosition(size_t index, size_t offset);
+        BufferPosition &operator=(const BufferPosition &other);
     };
     struct EditPiece
     {

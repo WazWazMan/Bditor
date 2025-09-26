@@ -43,6 +43,16 @@ PieceTable::EditPiece &PieceTable::EditPiece::operator=(const EditPiece &other)
 
 PieceTable::BufferPosition::BufferPosition(size_t index, size_t offset) : index(index), offset(offset) {}
 
+PieceTable::BufferPosition::BufferPosition(const BufferPosition &other) : index(other.index), offset(other.offset) {}
+
+PieceTable::BufferPosition &PieceTable::BufferPosition::operator=(const BufferPosition &other)
+{
+    this->index = other.index;
+    this->offset = other.offset;
+
+    return *this;
+}
+
 PieceTable::Buffer::Buffer(std::string str) : str(str), lineStarts(nullptr), lineCount(0)
 {
     char temp;
