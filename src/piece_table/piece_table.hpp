@@ -100,6 +100,7 @@ private:
     size_t calculateLength(EditNode *node);
     size_t calculateLineCount(EditNode *node);
     NodeArrayStruct createPieces(const std::string &data);
+    void splitNode(EditNode *const node,size_t offset);
 
 public:
     PieceTable();

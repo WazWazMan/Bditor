@@ -127,8 +127,84 @@ PieceTable::~PieceTable()
 
 PieceTable &PieceTable::insert(const size_t index, const std::string &data)
 {
-    change(index, 0, data);
+    // this needs to be enum
+    // we need to know the exact number of objects stored in the array
+    NodeArrayStruct x = createPieces(data);
+
+    if (editTreeRoot == nullptr)
+    {
+        // tree is empty
+        EditNode *node = insertRight(nullptr, x.pieces[0]);
+        for (size_t i = 1; i < x.size; i++)
+        {
+            node = insertRight(node, x.pieces[i]);
+        }
+        return *this;
+    }
+    else
+    {
+        // tree is not empty
+        NodePosition nodePosition = nodeAt(index);
+
+        if (nodePosition.nodeStartOffset == index)
+        {
+            // we are inserting into the beginning of a node.
+            // we insert one node to left and then all the rest of the nodes in sequanse to the right
+            EditNode *node = insertLeft(nodePosition.node, x.pieces[0]);
+            for (size_t i = 1; i < x.size; i++)
+            {
+                node = insertRight(node, x.pieces[i]);
+            }
+        }
+        else if (nodePosition.nodeStartOffset + getEditPieceLength(nodePosition.node->data) > index)
+        {
+            // we are inserting into the middle of a node.
+            size_t offsetInNode = index - nodePosition.nodeStartOffset;
+            splitNode(nodePosition.node, offsetInNode);
+
+            EditNode *node = insertRight(nodePosition.node, x.pieces[0]);
+            for (size_t i = 1; i < x.size; i++)
+            {
+                node = insertRight(node, x.pieces[i]);
+            }
+        }
+        else
+        {
+            // we are inserting into the end of a node.
+            // we insert all nodes in sequanse to the right
+            EditNode *node = insertRight(nodePosition.node, x.pieces[0]);
+            for (size_t i = 1; i < x.size; i++)
+            {
+                node = insertRight(node, x.pieces[i]);
+            }
+        }
+    }
+
     return *this;
+}
+
+void PieceTable::splitNode(EditNode *const node, size_t offset)
+{
+    EditPiece &piece = node->data;
+    size_t bufferIndex = piece.bufferInfex;
+    size_t splitOffset = 0, lineStart = 0;
+    for (size_t i = 0; i < this->buffers[bufferIndex].lineCount; i++)
+    {
+        size_t currOffsetOfLine = this->buffers[bufferIndex].lineStarts[i];
+        if (currOffsetOfLine > offset)
+        {
+            break;
+        }
+        lineStart = i;
+        splitOffset = offset - currOffsetOfLine;
+    }
+
+    BufferPosition splitPoint = BufferPosition(lineStart, offset);
+    BufferPosition newEnd = BufferPosition(piece.end);
+    piece.end = splitPoint;
+
+    EditPiece newNode = EditPiece(bufferIndex, splitPoint, newEnd);
+    insertRight(node, newNode);
 }
 
 PieceTable::NodeArrayStruct PieceTable::createPieces(const std::string &data)
