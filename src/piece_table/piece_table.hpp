@@ -1,8 +1,9 @@
 #pragma once
-#include <vector>
 #include <deque>
-#include <string>
+#include <iostream>
 #include <memory>
+#include <string>
+#include <vector>
 
 class PieceTable
 {
@@ -19,7 +20,7 @@ private:
         size_t offset;
 
         BufferPosition() = default;
-        BufferPosition(const BufferPosition& other);
+        BufferPosition(const BufferPosition &other);
         BufferPosition(size_t index, size_t offset);
         BufferPosition &operator=(const BufferPosition &other);
     };
@@ -75,7 +76,7 @@ private:
         EditPiece *pieces;
         size_t size;
         NodeArrayStruct();
-        NodeArrayStruct(NodeArrayStruct &other);
+        NodeArrayStruct(const NodeArrayStruct &other);
         NodeArrayStruct(size_t size);
         ~NodeArrayStruct();
     };
@@ -100,7 +101,10 @@ private:
     size_t calculateLength(EditNode *node);
     size_t calculateLineCount(EditNode *node);
     NodeArrayStruct createPieces(const std::string &data);
-    void splitNode(EditNode *const node,size_t offset);
+    void splitNode(EditNode *const node, size_t offset);
+    EditNode *getNextNode(EditNode *node);
+    std::string getEditPieceText(EditPiece &piece);
+    std::string getEditPieceTextTillEndLine(EditPiece &piece);
 
 public:
     PieceTable();
@@ -109,6 +113,5 @@ public:
     PieceTable &insert(const size_t index, const std::string &data);
     PieceTable &remove(const size_t index, const size_t &length);
     PieceTable &replace(const size_t index, const size_t &length, const std::string &data);
-
-    // std::string getLineContent();
+    std::string getLineContent(size_t line);
 };

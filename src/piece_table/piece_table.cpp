@@ -106,7 +106,7 @@ PieceTable::Buffer &PieceTable::Buffer::operator=(const Buffer &other)
 
 PieceTable::NodeArrayStruct::NodeArrayStruct() : pieces(nullptr), size(0) {}
 PieceTable::NodeArrayStruct::NodeArrayStruct(size_t size) : pieces(new EditPiece[size]()), size(size) {}
-PieceTable::NodeArrayStruct::NodeArrayStruct(NodeArrayStruct &other) : pieces(new EditPiece[other.size]()), size(other.size)
+PieceTable::NodeArrayStruct::NodeArrayStruct(const NodeArrayStruct &other) : pieces(new EditPiece[other.size]()), size(other.size)
 {
     for (size_t i = 0; i < other.size; i++)
     {
@@ -199,7 +199,7 @@ void PieceTable::splitNode(EditNode *const node, size_t offset)
         splitOffset = offset - currOffsetOfLine;
     }
 
-    BufferPosition splitPoint = BufferPosition(lineStart, offset);
+    BufferPosition splitPoint = BufferPosition(lineStart, splitOffset);
     BufferPosition newEnd = BufferPosition(piece.end);
     piece.end = splitPoint;
 
@@ -556,4 +556,104 @@ size_t PieceTable::calculateLineCount(EditNode *node)
     }
 
     return node->data.leftSubTreeLineCount + getEditPieceLineCount(node->data) + calculateLineCount(node->right);
+}
+
+std::string PieceTable::getLineContent(size_t line)
+{
+    EditNode *currentNode = editTreeRoot;
+    while (currentNode != nullptr)
+    {
+        if (currentNode->left && currentNode->data.leftSubTreeLineCount >= line)
+        {
+            currentNode = currentNode->left;
+        }
+        else if (currentNode->data.leftSubTreeLineCount + getEditPieceLineCount(currentNode->data) > line)
+        {
+            // the hole line is in this node
+            line -= currentNode->data.leftSubTreeLineCount;
+            size_t startIndex = buffers[currentNode->data.bufferInfex].lineStarts[line] + currentNode->data.start.offset;
+            size_t endIndex = buffers[currentNode->data.bufferInfex].lineStarts[line + 1];
+            return buffers[currentNode->data.bufferInfex].str.substr(startIndex, endIndex - startIndex);
+        }
+        else if (currentNode->data.leftSubTreeLineCount + getEditPieceLineCount(currentNode->data) == line)
+        {
+            // the node is the begining of the line but may not be the last
+            std::string tempString, retString = "";
+            line -= currentNode->data.leftSubTreeLineCount;
+            size_t startIndex = buffers[currentNode->data.bufferInfex].lineStarts[line] + currentNode->data.start.offset;
+            size_t endIndex = buffers[currentNode->data.bufferInfex].str.size() - 1;
+            tempString = buffers[currentNode->data.bufferInfex].str.substr(startIndex, endIndex - startIndex);
+
+            EditNode *nextNode = getNextNode(currentNode);
+            size_t nextNodeLineCount;
+
+            while (nextNode)
+            {
+                nextNodeLineCount = getEditPieceLineCount(nextNode->data);
+                // there are no line breakes in the piece and we can take the hole piece
+                tempString += getEditPieceTextTillEndLine(nextNode->data);
+                if (nextNodeLineCount != 0)
+                {
+                    break;
+                }
+
+                nextNode = getNextNode(currentNode);
+            }
+
+            return tempString;
+        }
+        else
+        {
+            line -= currentNode->data.leftSubTreeLength + getEditPieceLineCount(currentNode->data);
+            currentNode = currentNode->right;
+        }
+    }
+    return "TBH this is not supposed to come to here :) yet here we are";
+}
+
+PieceTable::EditNode *PieceTable::getNextNode(EditNode *node)
+{
+    if (node == nullptr)
+    {
+        return nullptr;
+    }
+
+    if (node->right)
+    {
+        return findSmallest(node->right);
+    }
+
+    EditNode *parent = node->parent;
+    while (parent && node == parent->right)
+    {
+        node = parent;
+        parent = parent->parent;
+    }
+
+    return node->parent;
+}
+
+std::string PieceTable::getEditPieceText(EditPiece &piece)
+{
+    Buffer &currentBuffer = buffers[piece.bufferInfex];
+    size_t startIndex = currentBuffer.lineStarts[piece.start.index] + piece.start.offset;
+    size_t endIndex = currentBuffer.lineStarts[piece.end.index] + piece.end.offset;
+    size_t strLen = endIndex - startIndex;
+
+    return currentBuffer.str.substr(startIndex, strLen);
+}
+
+std::string PieceTable::getEditPieceTextTillEndLine(EditPiece &piece)
+{
+    if (getEditPieceLineCount(piece) == 0)
+    {
+        return getEditPieceText(piece);
+    }
+
+    Buffer &currentBuffer = buffers[piece.bufferInfex];
+    size_t startIndex = currentBuffer.lineStarts[piece.start.index] + piece.start.offset;
+    size_t endIndex = currentBuffer.lineStarts[piece.start.index + 1]; // we know for sure that this exist since getEditPieceLineCount returned > 0
+    size_t strLen = endIndex - startIndex;
+
+    return currentBuffer.str.substr(startIndex, strLen);
 }
